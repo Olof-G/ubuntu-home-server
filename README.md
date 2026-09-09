@@ -20,14 +20,17 @@ with Linux administration, Docker, networking, monitoring, and automation.
 
 ## Structure
 
+```bash
 opt/
 └── docker/
     ├── nextcloud/
     ├── minecraft/
     └── monitoring/
+```
 
 ## Monitoring
 
+```bash
 Ubuntu host
     │
     ├── Node Exporter
@@ -41,3 +44,4 @@ Ubuntu host
                 │
                 ▼
              Grafana
+```

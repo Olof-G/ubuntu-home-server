@@ -6,11 +6,11 @@ services:
     environment:
       EULA: "true"
       TYPE: PAPER
-      VERSION: "26.2"
-      MEMORY: 6G
-      SEED: "CUSTOM_SEED"
+      VERSION: ${MC_VER}
+      MEMORY: ${RAM}
+      SEED: ${CUSTOM_SEED}
     ports:
-      - "MC_PORT1:MC_PORT2"
+      - "${MC_PORT}:${MC_PORT}"
     volumes:
       - /srv/minecraft:/data
     restart: unless-stopped
