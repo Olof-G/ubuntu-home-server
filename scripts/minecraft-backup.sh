@@ -3,46 +3,69 @@
 SOURCE="/srv/minecraft"
 BACKUP_DIR="/srv/minecraft-backups"
 COMPOSE_DIR="/opt/docker/minecraft"
+LOCK_FILE="/tmp/minecraft-backup.lock"
+LOG_FILE="/var/log/minecraft-backup.log"
 DATE=$(date +"%Y-%m-%d_%H-%M-%S")
 
-mkdir -p "$BACKUP_DIR"
+# Store stdout (FD 1) and stderr (FD 2) in LOG_FILE
+exec >> "$LOG_FILE" 2>&1
+echo "=== Backup run started: $(date) ==="
 
+# Prevent overlapping runs
+exec 200>"$LOCK_FILE"   # LOCK_FILE: FD 200
+if ! flock -n 200; then
+    echo "Another backup is already running. Exiting."
+    exit 1
+fi
+
+mkdir -p "$BACKUP_DIR"
 cd "$COMPOSE_DIR" || exit 1
 
-echo "Sending MC-server warning..."
-sudo docker compose exec -T mc rcon-cli "say Server restarting for backup in 5 seconds..."
+SERVER_STOPPED=0
 
+# When script exits, server should be running
+restart_server() {
+    if [ "$SERVER_STOPPED" -eq 1 ]; then
+        echo "Starting Minecraft server..."
+        docker compose start mc
+        SERVER_STOPPED=0
+    fi
+}
+trap restart_server EXIT
+
+echo "Sending MC-server warning..."
+docker compose exec -T mc rcon-cli "say Server restarting for backup, downtime should be less than a minute."
 sleep 5
 
 echo "Stopping Minecraft server..."
-sudo docker compose stop mc
-
-# protected by the restart handler.
-restart_server() {
-    echo "Starting Minecraft server..."
-    sudo docker compose start mc
-}
-
-trap restart_server EXIT
+if ! docker compose stop mc; then
+    echo "ERROR: Failed to stop server, aborting backup (server left as-is)."
+    exit 1
+fi
+SERVER_STOPPED=1
 
 echo "Creating backup..."
-if tar -czf "$BACKUP_DIR/minecraft-$DATE.tar.gz" \
-    -C "$SOURCE" .; then
-
-    echo "Backup created successfully."
-
+ARCHIVE="$BACKUP_DIR/minecraft-$DATE.tar.gz"
+if tar -czf "$ARCHIVE" -C "$SOURCE" .; then
+    echo "Verifying archive integrity..."
+    if ! tar -tzf "$ARCHIVE" >/dev/null; then
+        echo "ERROR: Backup archive is corrupt! Removing bad file."
+        rm -f "$ARCHIVE"
+        restart_server
+        exit 1
+    fi
+    echo "Backup created and verified successfully."
 else
-
     echo "ERROR: Backup failed!"
+    rm -f "$ARCHIVE"
+    restart_server
     exit 1
-
 fi
 
-echo "Deleting backups older than 1 week..."
-find "$BACKUP_DIR" \
-    -type f \
-    -name "minecraft-*.tar.gz" \
-    -mtime +7 \
-    -delete
+# Bring the server back up right away — don't make players wait on cleanup
+restart_server
 
-echo "Backup complete."
+echo "Deleting backups older than 1 week..."
+find "$BACKUP_DIR" -type f -name "minecraft-*.tar.gz" -mtime +7 -delete
+
+echo "Backup complete: $(date)"
