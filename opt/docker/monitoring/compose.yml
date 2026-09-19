@@ -1,7 +1,7 @@
 services:
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.14.0
     container_name: prometheus
     restart: unless-stopped
 
@@ -16,7 +16,7 @@ services:
       - node-exporter
 
   node-exporter:
-    image: prom/node-exporter:latest
+    image: prom/node-exporter:v1.12.1
     container_name: node-exporter
     restart: unless-stopped
 
@@ -27,7 +27,7 @@ services:
       - '/:/host:ro,rslave'
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor:v0.55.1
     container_name: cadvisor
     restart: unless-stopped
 
@@ -39,7 +39,7 @@ services:
       - '/dev/disk/:/dev/disk:ro'
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:v13.2.1
     container_name: grafana
     restart: unless-stopped
 
