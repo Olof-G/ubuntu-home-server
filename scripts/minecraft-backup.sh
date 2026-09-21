@@ -1,10 +1,14 @@
 #!/bin/bash
 
-SOURCE="/srv/minecraft"
-BACKUP_DIR="/srv/minecraft-backups"
-COMPOSE_DIR="/opt/docker/minecraft"
-LOCK_FILE="/tmp/minecraft-backup.lock"
-LOG_FILE="/var/log/minecraft-backup.log"
+ENV_FILE="/opt/docker/minecraft/backup.env"
+
+if [ -f "$ENV_FILE" ]; then
+    source "$ENV_FILE"
+else
+    echo "ERROR: env file not found at $ENV_FILE"
+    exit 1
+fi
+
 DATE=$(date +"%Y-%m-%d_%H-%M-%S")
 
 # Store stdout (FD 1) and stderr (FD 2) in LOG_FILE
