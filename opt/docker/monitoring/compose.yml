@@ -39,7 +39,7 @@ services:
       - '/dev/disk/:/dev/disk:ro'
 
   grafana:
-    image: grafana/grafana:v13.2.1
+    image: grafana/grafana:13.2.1
     container_name: grafana
     restart: unless-stopped
 
