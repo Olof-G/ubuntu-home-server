@@ -1,0 +1,31 @@
+---
+- name: Sync server architecture with git repo
+  hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: Sync docker compose configs into /opt/docker
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/opt/docker/"
+        dest: "/opt/docker/"
+        owner: root
+        group: root
+
+    - name: Deploy scripts to /usr/local/bin
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/scripts/"
+        dest: "/usr/local/bin/"
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Ensure docker compose stacks are up and current
+      community.docker.docker_compose_v2:
+        project_src: "/opt/docker/{{ item }}"
+        pull: always
+        state: present
+      loop:
+        - nextcloud
+        - minecraft
+        - monitoring
