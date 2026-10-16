@@ -17,6 +17,8 @@ with Linux administration, Docker, networking, monitoring, and automation.
 - Node Exporter
 - cAdvisor
 - Grafana
+- AdGuard
+- Wireguard
 
 ## Structure
 
@@ -26,6 +28,9 @@ opt/
     ├── nextcloud/
     ├── minecraft/
     └── monitoring/
+
+etc/
+└── wireguard/
 ```
 
 ## Monitoring
