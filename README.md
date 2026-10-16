@@ -25,9 +25,10 @@ with Linux administration, Docker, networking, monitoring, and automation.
 ```bash
 opt/
 └── docker/
-    ├── nextcloud/
+    ├── adguard/
+    ├── monitoring/
     ├── minecraft/
-    └── monitoring/
+    └── nextcloud/
 
 etc/
 └── wireguard/
