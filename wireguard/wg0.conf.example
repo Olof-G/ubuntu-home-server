@@ -1,0 +1,19 @@
+# Server config template.
+# The real file lives at /etc/wireguard/wg0.conf (root-only, chmod 600)
+# Copy this file there and fill in the placeholders.
+
+[Interface]
+Address = 10.8.0.1/24
+ListenPort = 51820
+# PrivateKey found at /etc/wireguard/server.key
+PrivateKey = <server-private-key>
+
+# laptop (Windows 10)
+[Peer]
+PublicKey = <laptop-public-key>
+AllowedIPs = 10.8.0.2/32
+
+# phone (Android)
+[Peer]
+PublicKey = <phone-public-key>
+AllowedIPs = 10.8.0.3/32
