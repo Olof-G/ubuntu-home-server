@@ -29,3 +29,10 @@
         - nextcloud
         - minecraft
         - monitoring
+        - adguard
+
+    - name: Ensure WireGuard service stays enabled and running
+      ansible.builtin.systemd:
+        name: "wg-quick@wg0"
+        enabled: true
+        state: started
