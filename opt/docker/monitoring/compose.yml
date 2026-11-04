@@ -1,7 +1,7 @@
 services:
 
   prometheus:
-    image: prom/prometheus:v3.15.0
+    image: prom/prometheus:v3.14.0
     container_name: prometheus
     restart: unless-stopped
 
@@ -12,6 +12,11 @@ services:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
 
+    # node-exporter and blackbox-exporter run in the host's network namespace
+    # (see below), so Prometheus reaches them through the docker host gateway.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
     depends_on:
       - node-exporter
 
@@ -20,11 +25,37 @@ services:
     container_name: node-exporter
     restart: unless-stopped
 
+    # Host network + host PID namespace: without these, node-exporter only sees
+    # the container's own virtual NIC and cannot report the real NIC's link
+    # state, errors, drops or speed. Listens on host port 9100.
+    network_mode: host
+    pid: host
+
     command:
       - '--path.rootfs=/host'
 
     volumes:
       - '/:/host:ro,rslave'
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.29.0
+    container_name: blackbox-exporter
+    restart: unless-stopped
+
+    # Host network so probes (ping router, ping internet, DNS, local ports)
+    # leave through the server's real NIC and reflect its real connectivity.
+    # Listens on host port 9115.
+    network_mode: host
+
+    # ICMP needs a raw socket.
+    user: root
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_RAW
+
+    volumes:
+      - ./blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.55.1
@@ -39,7 +70,7 @@ services:
       - '/dev/disk/:/dev/disk:ro'
 
   grafana:
-    image: grafana/grafana:13.2.4
+    image: grafana/grafana:13.2.1
     container_name: grafana
     restart: unless-stopped
 
@@ -48,6 +79,9 @@ services:
 
     volumes:
       - 'grafana-storage:/var/lib/grafana'
+      # Dashboards kept in git: Grafana loads every .json in ./grafana/dashboards
+      - './grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro'
+      - './grafana/dashboards:/var/lib/grafana-dashboards:ro'
 
 volumes:
   prometheus_data:

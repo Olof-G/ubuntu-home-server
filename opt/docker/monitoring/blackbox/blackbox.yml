@@ -1,0 +1,38 @@
+modules:
+
+  icmp:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: ip4    # IPv4 only, since server's setup has no IPv6 path
+      ip_protocol_fallback: false
+
+  # Lookup query to a DNS server.
+  # Used against AdGuard (local) and 1.1.1.1 (external).
+  dns_a:
+    prober: dns
+    timeout: 5s
+    dns:
+      query_name: "example.com"
+      query_type: "A"
+      preferred_ip_protocol: ip4
+      ip_protocol_fallback: false
+      valid_rcodes:
+        - NOERROR
+
+  # TCP port connection acceptance (ssh, nextcloud, minecraft)
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      preferred_ip_protocol: ip4
+      ip_protocol_fallback: false
+
+  # Full HTTPS request to the internet (DNS + TCP + TLS + HTTP).
+  http_2xx:
+    prober: http
+    timeout: 8s
+    http:
+      preferred_ip_protocol: ip4
+      ip_protocol_fallback: false
+      method: GET

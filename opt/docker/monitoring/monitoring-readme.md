@@ -5,5 +5,7 @@
 |-----------|----------------|------------|---------|
 |   9090    |      9090      | Prometheus | Web UI / query API |
 |   3000    |      3000      | Grafana    | Web dashboard |
+|   9100    |  (host network)| node-exporter     | Host metrics, scraped by Prometheus |
+|   9115    |  (host network)| blackbox-exporter | Connectivity probes, scraped by Prometheus |
 
 Only Prometheus and Grafana are published to the host. node-exporter (9100) and cAdvisor (8080) are reachable only inside the docker compose network, where Prometheus scrapes them by service name (`node-exporter:9100`, `cadvisor:8080`). cAdvisor's internal 8080 therefore doesn't conflict with Nextcloud on the host.
